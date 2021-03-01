@@ -1,5 +1,5 @@
 ---
-title: "Standard Statistical Hypothesis Tests in R"
+title: "Statistical Models in R"
 output: 
   learnr::tutorial:
     progressive: true
@@ -7,7 +7,7 @@ output:
     df_print: paged
 runtime: shiny_prerendered
 description: >
-  Hypothesis tests in R.
+  Statistical Models in R.
 ---
 
 
@@ -32,23 +32,25 @@ gen_lin_mod<-lmer(yield~treat+(1|rep),data=fallow)
 
 Within this tutorial we will look at a few common statistical modelling approaches often used in agricultural analysis:
 
-1. A linear regression model.
-2. An Analysis of Variance (ANOVA) model. 
-3. Extending the ANOVA model to a generalized linear model.
+1. A linear regression model
+2. An Analysis of Variance (ANOVA) model.
+3. Extending the ANOVA model to a generalized linear model
 
-The syntax in R for all of these modelling approaches is very similar, and this extends to nearly all of the common models that you could ever want to fit.
+You will quickly see that the code required in R for all of these modelling approaches is very similar. In fact all of these models are all part of the same general modelling framework - this extends to nearly all of the common models that you could ever want to fit.
 
 ![](https://youtu.be/AYLY10wk6PY)
 
-In the video above I explain more generally about models, beyond just the simple straight line linear regression model. The simple straight line linear regression model is nice, and has lots of useful applications. But in many cases won't be sufficient to build a comprehensive model to understand our questions and data in full. Although the statistics underlying more advanced methodologies can start to become increasingly complicated, the R code to produce these models does not increase in complexity to anywhere near the same extent!
+In the video above I explain more generally about models, beyond just the simple straight line linear regression model. The simple straight line linear regression model is nice, and has lots of useful applications. 
 
-It is important to match our questions, and our data, to the model that we are using. Since a model is useless if it does not let us answer the questions we have, or if it is not appropriate for the data that we have. So do not be limited by only using models you 'know' or have been taught about - try to find the right sort of model for you. If you are stuck with this process, reach out to someone to ask them for help in giving you advice! But the nice thing is, that using R means that actually fitting this model may be very straightforward indeed once you know what you are looking for.
+But in many cases won't be sufficient to build a comprehensive model to understand our questions and data in full. Although the statistics underlying more advanced methodologies can start to become increasingly complicated, the R code to produce these models does not increase in complexity to anywhere near the same extent! This means that with R we should be able to learn how to analyse our data according to our objectives, rather than trying to use approaches simply because we have already been taught about them or because they are 'easy'.
+
+It is important to match our questions, and our data, to the model that we are using. A model is useless if it does not let us answer the questions we have, or if it is not appropriate for the data that we have. So do not be limited by only using models you 'know' or have been taught about - try to find the right sort of model for you. If you are stuck with this process, reach out to someone to ask them for help in giving you advice! But the nice thing is, that using R means that actually fitting this model may be very straightforward indeed once you know what you are looking for.
 
 ## Data
 
-The data used in this example is from a study was conducted in Eastern Zambia and the main aim was to improve on the efficiency of the natural fallows by using appropriate trees that may have relevance in soil fertility regeneration within permissible fallow periods.
+The data used in this example is from a study was conducted in Eastern Zambia with the main objective of improving the efficiency of the natural fallows by using appropriate trees that may have relevance in soil fertility regeneration within permissible fallow periods.
 
-The design was a RCBD experiment with 4 blocks and 9 treatments. If you take a look at the data below you will see that we have data concerning the measurement of the yield (the column `yield` within the data) and the striga count (`striga`) of a plot (the column `plot`), within a block (the column `rep`), after a specific treatment (the column `treat`). 
+The design was a RCBD experiment (randomised complete block design) with 4 blocks and 9 treatments. If you take a look at the data below you will see that we have data concerning the measurement of the yield (the column `yield` within the data) and the striga count (`striga`) of a plot (the column `plot`), within a block (the column `rep`), after a specific treatment (the column `treat`). 
 
 ```{r,echo=FALSE}
 DT::datatable(fallow)
@@ -89,11 +91,11 @@ cor(fallow$yield,fallow$striga)
 ```
 A value of -0.33 suggests a small-to-moderate size negative correlation between these variables. But correlation is not an especially informative value - fitting a linear model provides us with the same, and much more, information!.
 
-We could also calculate summary statistics of yield based on categorising the striga variable and then calculating means within these groups. We could use `mutate` to create a new variable, and within `mutate()` use the `cut()` function to break `striga` into multiple groups. Using this new variable we can then `group_by()` and `summarise()` the yield values. The `cut` function requires us to set the break points for our new categories - note that the lower limit is exclusive, so setting the lower limit as 0 would not include any striga values of 0, which is why the value of -0.1 is used here.
+We could also calculate summary statistics of yield based on categorising the striga variable and then calculating means within these groups. We could use `mutate` to create a new variable, and within `mutate()` use the `cut()` function to break `striga` into multiple groups. Using this new variable we can then `group_by()` and `summarise()` the yield values. The `cut` function requires us to set the break points for our new categories - note that the lower limit is exclusive by default, so we need to make sure we include the option `include.lowest=TRUE` to make sure the 0 striga counts are included in this group.
 
 ```{r sumstats, exercise=TRUE}
 fallow %>%
-  mutate(striga_grp=cut(striga,breaks=c(-0.1,25,250,9999)))%>%
+  mutate(striga_grp=cut(striga,breaks=c(0,25,250,9999),include.lowest = TRUE))%>%
     group_by(striga_grp) %>%
       summarise(mean(yield),n())
 ```
@@ -425,7 +427,7 @@ emmeans(gen_lin_mod, ~treat) %>%
 
 In the output, groups sharing a letter in the .group are not statistically different from each other.
 
-## Model choices
+### Model choices
 
 Ultimately our model fitted using a generalised linear mixed model, with a random effect to account for block, using `lmer` provided almost identical results to the standard linear model fitted using `lm`. However, this is because the blocking in this experiment had very little impact on the results - it was an on-station trial with very controlled conditions and similar environments across the four blocks. In increasingly complex situations, particularly those with farmers conducting multiple treatments or with clusters of farmers in very different situations, very different results would be obtained from these two modelling approaches. Plots on one farmers field will be extremely different 
 
@@ -440,6 +442,10 @@ For instance, we demonstrated fitting our model as a linear mixed effect model r
 3.	Allows for generalization of non-normal data.  
 4.	Handling missing data: If the percentage of missing data is small and that data missing is a random sample of the data set,data from the observations with missing data can be analysed with `lmer` (unlike other packages that would do listwise deletion.
 5.	Takes into account variation that is explained by the predictor variables of interest ie fixed effects and variation that is not explained by these predictors ie random effects.
+
+## Exercises
+
+To be inserted here!
 
 ## More examples of analysis
 
