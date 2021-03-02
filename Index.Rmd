@@ -420,7 +420,7 @@ One thing which is not shown, compared to output after `lm` is the r squared val
 ```{r r2, exercise=TRUE}
 r.squaredGLMM(gen_lin_mod)
 ```
-Two versions of R-squared as shown - the  marginal R square `R2m`- which shows only the variance explained by the "fixed effects" in this case the treatment term. The conditional Rsquare `R2c` shows the effect of both the fixed and random effects - so includes both `rep` and `treat`. So we can see 81% of the variability in yield is explained by the different treatments, and this increases to 82.3% is we include rep as well.
+Two versions of R-squared as shown - the  marginal R square `R2m`- which shows only the variance explained by the "fixed effects" in this case the treatment term. The conditional R-squared `R2c` shows the effect of both the fixed and random effects - so includes both `rep` and `treat`. So we can see 81% of the variability in yield is explained by the different treatments, and this increases to 82.3% is we include rep as well.
 
 To obtain an ANOVA table - we can obtain this as before using `anova(model)`
 
@@ -435,7 +435,7 @@ The ANOVA table only includes the fixed effects - showing us a highly significan
 ranova(gen_lin_mod)
 ```
 
-This does not show us a significant effect of the different `reps` we have in the data. However because this variable is describing the structure of our experiment, this is usually not something we are particularly interested in - we generally want to account for the structure in the analysis whether or not it is significant.
+This does not show us a significant effect of the different `reps` we have in the data. However because this variable is describing the structure of our data, this is usually not something we are particularly interested in. With structural variables, we generally want to account for any impact they may have on the analysis whether or not they could be considered to be statistically significant.
 
 ### Check the model
 
@@ -451,7 +451,7 @@ We can check most of the key assumptions from this one plot. The residual Vs fit
 
 We can also see that there are no extreme values in the residuals which might be potentially causing problems with the validity of our conclusions (leverage)
 
-To assess the assumption of approximate normality we can produce the same plot as before if we extract the residuals and use the function `qqplot`. This shows us how closely the residuals follow a normal distribution - if there are severe and systematic deviations from the line then we may want to consider an alternative distribution. The most elegant way of doing this is to use pipes.
+To assess the assumption of approximate normality we can produce the same plot as before if we extract the residuals and use the function `qqplot`. This shows us how closely the residuals follow a normal distribution - if there are severe and systematic deviations from the line then we may want to consider an alternative distribution. The most elegant way of doing this is to use pipes - firstly to obtain the residuals and then to pipe those residuals into the `qqplot` function..
 
 ```{r qqplot, exercise=TRUE}
 gen_lin_mod %>%
@@ -474,7 +474,24 @@ emmeans(gen_lin_mod, ~treat) %>%
   cld(Letters=letters)
 ```
 
-In the output, groups sharing a letter in the .group are not statistically different from each other.
+In the output, groups sharing a letter in the .group are not statistically different from each other as before.
+
+Using the example from the rpevious section, see if you can write the code to make a plot showing the results from the `lmer` model including the letter displays and the error bars
+
+```{r cldplt, exercise=TRUE}
+
+```
+
+```{r cldplt-solution, exercise=TRUE}
+emmeans(gen_lin_mod, ~treat) %>%
+  cld(Letters=letters)  %>% 
+  data.frame() %>%
+  ggplot(aes(y=emmean,x=treat,ymin=lower.CL,ymax=upper.CL,label=.group))+
+    geom_point()+
+      geom_errorbar()+
+        geom_text(nudge_x=-0.2)
+   
+```
 
 ### Model choices
 
@@ -484,7 +501,7 @@ Ultimately our model fitted using a generalised linear mixed model, with a rando
 
 There are always many different ways of doing all that we have done here in R. The less complex the method/code is, the better it is for you so that you can easily grasp the method.
 
-For instance, we demonstrated fitting our model as a linear mixed effect model rather than traditional ANOVA because lmer model has the following advantages: 
+For instance, we demonstrated fitting our model as a linear mixed effect model rather than traditional ANOVA because the `lmer` model has the following advantages: 
 
 1.	They are very flexible especially where we have repeated measures, for instance you don’t need to have the same number of observations per subject/treatment.
 2.	Ability to account for a series of random effects. Not only are farms/farmers/plots…. different from each other, but things with in farms/plots….. also differ . Not taking these sources of variation into account will lead to underestimations of accuracy.
