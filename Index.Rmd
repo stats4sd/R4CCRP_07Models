@@ -494,7 +494,15 @@ For instance, we demonstrated fitting our model as a linear mixed effect model r
 
 ## Exercises
 
-To be inserted here!
+As in the last webinar it is now up to you to use RStudio to complete the exercises on your own computer.
+
+You can download the files you need [by clicking on this link here](https://github.com/stats4sd/R4CCRP_07Models/blob/main/Exercises.zip?raw=true)
+
+Make sure you unzip these into a new folder, and then start a new project file based on that folder, like we learnt in the previous module.
+
+You should need to install some of the packages used before proceeding. Make sure you have these installed and loaded, by running the first code chunk, before you try to start solving any of the questions!
+
+
 
 ## More examples of analysis
 
