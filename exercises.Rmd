@@ -13,6 +13,7 @@ library(janitor)
 #these are probably new
 library(lmerTest)
 library(multcomp)
+library(multcompView)
 library(emmeans)
 library(MuMIn)
 library(agridat)

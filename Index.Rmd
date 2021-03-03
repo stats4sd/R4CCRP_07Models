@@ -17,6 +17,7 @@ library(tidyverse)
 library(DT)
 library(lmerTest)
 library(multcomp)
+library(multcompView)
 library(emmeans)
 library(MuMIn)
 
@@ -69,6 +70,7 @@ library(dplyr)
 
 library(lmerTest)
 library(multcomp)
+library(multcompView)
 library(emmeans)
 library(MuMIn)
 
@@ -91,7 +93,7 @@ When considering summary statistics there are two things we could do. Firstly we
 ```{r cor1, exercise=TRUE}
 cor(fallow$yield,fallow$striga)
 ```
-A value of -0.33 suggests a small-to-moderate size negative correlation between these variables. But correlation is not an especially informative value - fitting a linear model provides us with the same, and much more, information!.
+A value of -0.339 suggests a small-to-moderate size negative correlation between these variables. But correlation is not an especially informative value - fitting a linear model provides us with the same, and much more, information!.
 
 We could also calculate summary statistics of yield based on categorising the striga variable and then calculating means within these groups. We could use `mutate` to create a new variable, and within `mutate()` use the `cut()` function to break `striga` into multiple groups. Using this new variable we can then `group_by()` and `summarise()` the yield values. The `cut` function requires us to set the break points for our new categories - note that the lower limit is exclusive by default, so we need to make sure we include the option `include.lowest=TRUE` to make sure the 0 striga counts are included in this group.
 
@@ -126,7 +128,7 @@ ggplot(data=fallow,aes(y=yield,x=striga))+
 To help us understand this relationship better we can also add an additional layer using `geom_smooth` which will fit a trend line. By default this fits a 'generalised additive model' which is similar idea to a moving average. 
 However, we can also use the function to provide the simple linear regression model of a straight line by using the option `method=lm`.
 
-```{r plot2, exercise=2}
+```{r plot2, exercise=TRUE}
 ggplot(data=fallow,aes(y=yield,x=striga))+
   geom_point()+
     geom_smooth(method="lm")
@@ -137,7 +139,7 @@ It looks like a straight line is probably a reasonably sensible way of fitting t
 
 ### Fitting the model
 
-To examine more about the model that we have plotted using `geom_smooth` we need to formally fit the model in R. We do this using the `lm()` command. Note the function is the letter `l` not the number `1` - lm stands for "linear model". The syntax for this is very similar to what we saw in the previous module for t-tests, with a response variable, a tilde, then the explanatory variable. Then the name of the dataset after. 
+To examine more about the model that we have plotted using `geom_smooth` we need to formally fit the model in R. We do this using the `lm()` command. Note the function we are using is written with the letter `l` not the number `1`. "lm" stands for "linear model". The syntax for this is very similar to what we saw in the previous module for t-tests, with a response variable, a tilde, then the explanatory variable. Then the name of the dataset after. 
 
 
 ```{r lm1, exercise=TRUE}
@@ -282,7 +284,7 @@ However we now have a lot more coefficients - and these have a slightly differen
 
 Therefore the p-values shown in the summary output represent significance tests of hypotheses we may not be directly interested in. The test for the intercept is testing the hypothesis that the mean value of treatment 1 is 0. This is probably not a useful hypothesis. The tests for each of the coefficients are comparing whether each treatment is significantly different from treatment 1. This is somewhat useful, but it only tells us about the treatments in relation to the reference level. It cannot tell us about say, treatment 2 vs treatment 7, and it cannot tell us whether there is an overall effect of treatment. Although in this case the answer to that should be pretty clear!
 
-This is why we also often see an ANOVA table to show whether there is an overall effect of a categorical variable. The null hypothesis in this ANOVA table is that all of the treatments have the same mean yield. If it is a significant p-value then this suggests that at least one of the treatments has a difference mean yield to the others. We can access the ANOVA table for a model by using the `anova()` function.
+This is why we also often see an ANOVA table to show whether there is an overall effect of a categorical variable. The null hypothesis in this ANOVA table is that all of the treatments have the same mean yield. If it is a significant p-value then this suggests that at least one of the treatments has a different mean yield from the others. We can access the ANOVA table for a model by using the `anova()` function.
 
 
 ```{r anova_tab, exercise=TRUE}
@@ -390,7 +392,7 @@ emmeans(anova_mod,~treat) %>%
 ## Generalised Linear Model
 
 As we have identified already the assumption that all of our observations are independent may not be reasonable within our design. 
-This is very common in agricultural analyses which will have specific layouts or involve operating with multiple farmers - this will invalidate the assumption that all observations are independent. In these sort of cases we need to move from a "general linear model" into a "generalised linear model" which can account for these structures. 
+This is very common in agricultural analyses which will have specific layouts or involve operating with multiple farmers - this will invalidate the assumption that all observations are independent. In these sort of cases we need to move from a "general linear model" into a "generalised linear model" which can account for these structures. This is also known as a mixed model since it contains "fixed effects" (variables we are interested in) and "random" effects (variables outlining the structure or clustering of observations in the data)  You can see a presentation of the theory and application of linear mixed models in agriculture here: https://www.esalq.usp.br/departamentos/lce/arquivos/aulas/2012/LCE5872/MixedModelsPiracicaba.pdf
 
 Mathematically this is quite a bit more complicated - but thankfully in R it is not very different at all to move towards this model, you will see many of the same functions as in the previous sections. We will use the same libraries we have seen so far, but now also add the `lmertest` library to be able to fit a "linear mixed effects regression" (`lmer()`) model. This approach is incredibly flexible and can let us take into account any of the standard agricultural experimental designs as long as we are able to code the random effects appropriately. 
 
@@ -399,7 +401,7 @@ It does not matter at all if we have continuous predictor variables, or categori
 
 ### Fitting the model
 
-In this design, an RCBD, we have one treatment factor, "treat", and one layout factor "rep". Using the `lmer()` function to include a blocking factors, or "random effects" as they are known in statistics, we use a slightly different style of code. We use brackets and then within the brackets.`1|variablename`  In this case `(1|rep)`. Then the rest of the model code is the same as before - this time I will store as an object called `gen_lin_mod`.
+In this design, an RCBD, we have one treatment factor, "treat", and one layout factor "rep". If we want to take into account this repeated blocks layout structure, we can’t use the “lm” function anymore and instead we need to include the “rep” blocking factor into the specification of a linear mixed effect model. Using the `lmer()` function to include a blocking factors, or "random effects" as they are known in statistics, we use a slightly different style of code. We use brackets and then within the brackets we write `1|variablename` , so in this case `(1|rep)`. Then the rest of the model code is the same as before - this time I will store as an object called `gen_lin_mod`.
 
 ```{r glm, exercise=TRUE}
 gen_lin_mod<-lmer(yield~treat+(1|rep),data=fallow)
@@ -412,10 +414,9 @@ summary(gen_lin_mod)
 ```
 The output looks a little different after we summarise a mixed effects model, although most things remain very similar. The table of coefficients is the same as before and has the same interpretation. The additional output showing the correlation between fixed effects is not very useful for us here, as in this designed experiment all treatments are replicated the same number of times.
 
-The residual error term is still presented but in a different place - this value is 0.4843 which can be found in the "Random Effects" table. This sort of model breaks down the variance into that which can be explained by our design factors (the `rep` term) and that which is left over as residual variance. Comparing the amount of the variance explained by each component can be useful to give us an understanding of how much our design factors are influencing our outcome variable. In this case the amount of variance explained by the `rep` is very small in relation to the residual variance, so it does not look like there is much of an effect of the different blocks.
+The residual error term is still presented but in a different place - this value is 0.4843 which can be found in the "Random Effects" table. This sort of model breaks down the variance into that which can be explained by our design factors (the `rep` term) and that which is left over as residual variance. Comparing the amount of the variance explained by each component can be useful to give us an understanding of how much our design factors are influencing our outcome variable. In this case the amount of variance explained by the `rep` (standard deviation = 0.1175) is fairly small in relation to the residual variance (standard deviation = 0.4843).
 
-
-One thing which is not shown, compared to output after `lm` is the r squared value. This can be optained by using the function `r.squaredGLMM` which comes from the `MuMIn` library.
+One thing which is missing when we compared to output of running `summary` after an `lm` is the R-squared value. This can be optained by using the function `r.squaredGLMM` which comes from the `MuMIn` library.
 
 ```{r r2, exercise=TRUE}
 r.squaredGLMM(gen_lin_mod)
@@ -435,7 +436,7 @@ The ANOVA table only includes the fixed effects - showing us a highly significan
 ranova(gen_lin_mod)
 ```
 
-This does not show us a significant effect of the different `reps` we have in the data. However because this variable is describing the structure of our data, this is usually not something we are particularly interested in. With structural variables, we generally want to account for any impact they may have on the analysis whether or not they could be considered to be statistically significant.
+This does not show us a significant effect of the different `reps` we have in the data. However because this variable is describing the structure of our data, this is usually not something we are particularly interested in. With structural variables, we generally want to account for any impact they may have on the analysis whether or not they could be considered to be statistically significant. But to help your understanding, note that this non-significance would suggest that the results we got from the last section using the “lm” function was probably somewhat reliable, despite not having taken into account the layout structure in blocks.
 
 ### Check the model
 
@@ -451,7 +452,7 @@ We can check most of the key assumptions from this one plot. The residual Vs fit
 
 We can also see that there are no extreme values in the residuals which might be potentially causing problems with the validity of our conclusions (leverage)
 
-To assess the assumption of approximate normality we can produce the same plot as before if we extract the residuals and use the function `qqplot`. This shows us how closely the residuals follow a normal distribution - if there are severe and systematic deviations from the line then we may want to consider an alternative distribution. The most elegant way of doing this is to use pipes - firstly to obtain the residuals and then to pipe those residuals into the `qqplot` function..
+To assess the assumption of approximate normality we can produce the same plot as before if we extract the residuals and use the function `qqnorm`. This shows us how closely the residuals follow a normal distribution - if there are severe and systematic deviations from the line then we may want to consider an alternative distribution. The most elegant way of doing this is to use pipes - firstly to obtain the residuals and then to pipe those residuals into the `qqnorm` function..
 
 ```{r qqplot, exercise=TRUE}
 gen_lin_mod %>%
@@ -476,13 +477,13 @@ emmeans(gen_lin_mod, ~treat) %>%
 
 In the output, groups sharing a letter in the .group are not statistically different from each other as before.
 
-Using the example from the rpevious section, see if you can write the code to make a plot showing the results from the `lmer` model including the letter displays and the error bars
+Using the example from the previous section, see if you can write the code to make a plot showing the results from the `lmer` model including the letter displays and the error bars
 
 ```{r cldplt, exercise=TRUE}
 
 ```
 
-```{r cldplt-solution, exercise=TRUE}
+```{r cldplt-solution}
 emmeans(gen_lin_mod, ~treat) %>%
   cld(Letters=letters)  %>% 
   data.frame() %>%
@@ -499,19 +500,19 @@ Ultimately our model fitted using a generalised linear mixed model, with a rando
 
 ## Methodological Principles
 
-There are always many different ways of doing all that we have done here in R. The less complex the method/code is, the better it is for you so that you can easily grasp the method.
+There are always many different ways of doing all that we have done here in R. If you look for guidance online about how to analyse particular designs you may find lots of different options for analysing "split plot" designs or "survey" data. It is always a good idea to ask for help when starting to analyse data if you are not sure about the way it should be analysed - you should make sure however you analyse the data it is done in a way which lets you address the questions that are most relevant to you. This is the big advantage of using the approach shown in this tutorial of the `lmer` and `lm` functions - they are incredibly flexible and can be used in many different situations. 
 
-For instance, we demonstrated fitting our model as a linear mixed effect model rather than traditional ANOVA because the `lmer` model has the following advantages: 
+For instance, we demonstrated fitting our model as a linear mixed effect model rather than traditional ANOVA. Although the analysis in this instance was not effected too much by this change the `lmer` model has a number of other advantages as well: 
 
 1.	They are very flexible especially where we have repeated measures, for instance you don’t need to have the same number of observations per subject/treatment.
 2.	Ability to account for a series of random effects. Not only are farms/farmers/plots…. different from each other, but things with in farms/plots….. also differ . Not taking these sources of variation into account will lead to underestimations of accuracy.
 3.	Allows for generalization of non-normal data.  
-4.	Handling missing data: If the percentage of missing data is small and that data missing is a random sample of the data set,data from the observations with missing data can be analysed with `lmer` (unlike other packages that would do listwise deletion.
+4.	Handling missing data: If the percentage of missing data is small and that data missing is a random sample of the data set,data from the observations with missing data can be analysed with `lmer` (unlike other packages that would do listwise deletion).
 5.	Takes into account variation that is explained by the predictor variables of interest ie fixed effects and variation that is not explained by these predictors ie random effects.
 
 ## Exercises
 
-As in the last webinar it is now up to you to use RStudio to complete the exercises on your own computer.
+As in the last module it is now up to you to use RStudio to complete the exercises on your own computer.
 
 You can download the files you need [by clicking on this link here](https://github.com/stats4sd/R4CCRP_07Models/blob/main/Exercises.zip?raw=true)
 
