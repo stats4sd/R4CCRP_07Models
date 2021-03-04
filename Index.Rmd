@@ -496,7 +496,7 @@ emmeans(gen_lin_mod, ~treat) %>%
 
 ### Model choices
 
-Ultimately our model fitted using a generalised linear mixed model, with a random effect to account for block, using `lmer` provided almost identical results to the standard linear model fitted using `lm`. However, this is because the blocking in this experiment had very little impact on the results - it was an on-station trial with very controlled conditions and similar environments across the four blocks. In increasingly complex situations, particularly those with farmers conducting multiple treatments or with clusters of farmers in very different situations, very different results would be obtained from these two modelling approaches. Plots on one farmers field will be extremely different 
+Ultimately our model fitted using a generalised linear mixed model, with a random effect to account for block, using `lmer` provided almost identical results to the standard linear model fitted using `lm`. However, this is because the blocking in this experiment had very little impact on the results - it was an on-station trial with very controlled conditions and similar environments across the four blocks. In increasingly complex situations, particularly those with farmers conducting multiple treatments or with clusters of farmers in very different situations, very different results would be obtained from these two modelling approaches. Plots on one farmers field will be similar to other plots on the same field but likely extremely different to another farmer's plots. In cases where very different results are found then it is usually worth trying to understand why! You will see an example of thi in the exercises. Don't be afraid to ask for help in these situations.
 
 ## Methodological Principles
 
